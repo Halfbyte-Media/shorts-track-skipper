@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Shorts Music Block-Skipper",
+  "name": "Shorts Track Skipper",
   "version": "1.6.0",
   "description": "Skips YouTube Shorts that use blocked music tracks. Adds a 'Block track' button next to the song name.",
   "permissions": ["storage"],
@@ -23,7 +23,7 @@
   ],
   "options_page": "options.html",
   "action": {
-    "default_title": "Shorts Music Block-Skipper",
+    "default_title": "Shorts Track Skipper",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
