@@ -1,4 +1,4 @@
-name: Publish to Chrome Web Store
+name: Build Extension Release
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - 'v*'  # Triggers on version tags like v1.3.0
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     
     steps:
@@ -18,7 +18,7 @@ jobs:
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Publishing version: $VERSION"
+          echo "Building version: $VERSION"
       
       - name: Update manifest.json version
         run: |
@@ -30,21 +30,20 @@ jobs:
       
       - name: Create extension package
         run: |
-          mkdir -p build
-          # Copy all extension files except dev tools and git files
-          rsync -av --exclude='.git*' --exclude='generate-icons.html' --exclude='node_modules' --exclude='build' ./ build/
-          cd build
-          zip -r ../extension.zip .
-      
-      - name: Upload & Publish to Chrome Web Store
-        uses: mnao305/chrome-extension-upload@v5.0.0
-        with:
-          file-path: extension.zip
-          extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
-          client-id: ${{ secrets.CHROME_CLIENT_ID }}
-          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
-          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          publish: true  # Set to false if you want to upload as draft first
+          # Create zip with all extension files
+          # Exclude: git files, dev tools, build artifacts, docs
+          zip -r extension.zip \
+            manifest.json \
+            content.js \
+            popup.html \
+            popup.js \
+            options.html \
+            options.js \
+            icons/ \
+            -x "*.git*" "generate-icons.html" "*.md" "PUBLISH.md"
+          
+          echo "✅ Extension package created: extension.zip"
+          unzip -l extension.zip
       
       - name: Commit version bump
         run: |
@@ -59,5 +58,16 @@ jobs:
         with:
           files: extension.zip
           generate_release_notes: true
+          body: |
+            ## 🚀 Chrome Extension Release v${{ steps.version.outputs.version }}
+            
+            Download `extension.zip` and upload it to the Chrome Web Store manually.
+            
+            ### Manual Upload Instructions:
+            1. Go to [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole)
+            2. Select your extension
+            3. Click **Package** → **Upload new package**
+            4. Upload the `extension.zip` file
+            5. Submit for review
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
