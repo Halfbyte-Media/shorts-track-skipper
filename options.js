@@ -4,6 +4,7 @@ const addBtn = document.getElementById("add");
 const enabledEl = document.getElementById("enabled");
 const autoDislikeEl = document.getElementById("autoDislike");
 const autoSkipAfterBlockEl = document.getElementById("autoSkipAfterBlock");
+const debugLogsEl = document.getElementById("debugLogs");
 const trackCount = document.getElementById("trackCount");
 const autocompleteEl = document.getElementById("autocomplete");
 const versionEl = document.getElementById("version");
@@ -89,11 +90,14 @@ function render(items) {
 }
 
 function load() {
-  chrome.storage.sync.get({blockedTracks: [], enabled: true, autoDislike: false, autoSkipAfterBlock: true}, v => {
+  chrome.storage.sync.get({blockedTracks: [], enabled: true, autoDislike: false, autoSkipAfterBlock: true, debugLogs: false}, v => {
     render(v.blockedTracks || []);
     enabledEl.checked = !!v.enabled;
     autoDislikeEl.checked = !!v.autoDislike;
     autoSkipAfterBlockEl.checked = v.autoSkipAfterBlock !== false; // Default to true
+    if (debugLogsEl) {
+      debugLogsEl.checked = !!v.debugLogs;
+    }
   });
   
   // Get version from manifest
@@ -282,4 +286,7 @@ document.addEventListener("click", e => {
 enabledEl.addEventListener("change", () => chrome.storage.sync.set({enabled: enabledEl.checked}));
 autoDislikeEl.addEventListener("change", () => chrome.storage.sync.set({autoDislike: autoDislikeEl.checked}));
 autoSkipAfterBlockEl.addEventListener("change", () => chrome.storage.sync.set({autoSkipAfterBlock: autoSkipAfterBlockEl.checked}));
+if (debugLogsEl) {
+  debugLogsEl.addEventListener("change", () => chrome.storage.sync.set({debugLogs: debugLogsEl.checked}));
+}
 document.addEventListener("DOMContentLoaded", load);

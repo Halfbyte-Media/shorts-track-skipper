@@ -1,11 +1,24 @@
+let debugEnabled = false;
+const logDebug = (...args) => {
+  if (!debugEnabled) return;
+  console.log("[Shorts Blocker]", ...args);
+};
+const logError = (...args) => console.error("[Shorts Blocker]", ...args);
+
 const S_EL = ".ytReelSoundMetadataViewModelMarqueeContainer .ytMarqueeScrollPrimaryString";
 let enabled = true;
 let blocked = [];
+let blockedVersion = 0;
 let autoDislike = false;
 let autoSkipAfterBlock = true;
 let lastSkipTime = 0;
 const SKIP_COOLDOWN = 2000; // 2 seconds cooldown between skips
 let lastCheckedTrack = null; // Prevent duplicate checks
+let lastCheckedVersion = -1;
+
+function hasExtensionContext() {
+  return typeof chrome !== "undefined" && !!chrome.runtime?.id;
+}
 
 function getText(el) {
   return el ? (el.textContent || "").trim() : "";
@@ -17,6 +30,17 @@ function norm(s) {
 
 function isShortsUrl() {
   return location.pathname.startsWith("/shorts");
+}
+
+function updateBlockedTracks(nextTracks) {
+  blocked = Array.isArray(nextTracks) ? [...nextTracks] : [];
+  blockedVersion += 1;
+  lastCheckedVersion = -1;
+}
+
+function rememberCheckedTrack(track) {
+  lastCheckedTrack = track;
+  lastCheckedVersion = blockedVersion;
 }
 
 // Extract track info from YouTube's internal player data
@@ -60,9 +84,17 @@ function getTrackFromYtData() {
       } catch (e) { /* ignore */ }
     }
   } catch (e) {
-    console.log('[Shorts Blocker] Error extracting YT data:', e);
+    logError("Error extracting YT data:", e);
   }
   return null;
+}
+
+function getCurrentTrackString() {
+  const trackInfo = getTrackFromYtData();
+  if (trackInfo?.full) return trackInfo.full;
+
+  const el = document.querySelector(S_EL);
+  return el ? getText(el) : null;
 }
 
 // Parse track string into components (handles "Title - Artist" format)
@@ -100,7 +132,7 @@ function matchesBlocked(currentTrack) {
     
     // Strategy 1: Exact match (case-insensitive)
     if (norm(current.full) === norm(blocked.full)) {
-      console.log('[Shorts Blocker] Exact match:', current.full);
+      logDebug("Exact match:", current.full);
       return true;
     }
     
@@ -108,7 +140,7 @@ function matchesBlocked(currentTrack) {
     if (blocked.title && blocked.artist && current.title && current.artist) {
       if (norm(current.title) === norm(blocked.title) && 
           norm(current.artist) === norm(blocked.artist)) {
-        console.log('[Shorts Blocker] Title+Artist match:', current.full);
+        logDebug("Title+Artist match:", current.full);
         return true;
       }
     }
@@ -116,7 +148,7 @@ function matchesBlocked(currentTrack) {
     // Strategy 3: Title-only match if no artist in blocked track
     if (blocked.title && !blocked.artist && current.title) {
       if (norm(current.title) === norm(blocked.title)) {
-        console.log('[Shorts Blocker] Title-only match:', current.full);
+        logDebug("Title-only match:", current.full);
         return true;
       }
     }
@@ -124,7 +156,7 @@ function matchesBlocked(currentTrack) {
     // Strategy 4: Substring match (original behavior, as fallback)
     // Only if blocked track is substantial (avoid matching short strings)
     if (blocked.full.length > 5 && norm(current.full).includes(norm(blocked.full))) {
-      console.log('[Shorts Blocker] Substring match:', current.full);
+      logDebug("Substring match:", current.full);
       return true;
     }
     
@@ -135,12 +167,12 @@ function matchesBlocked(currentTrack) {
 function tryClickNext() {
   const now = Date.now();
   if (now - lastSkipTime < SKIP_COOLDOWN) {
-    console.log('[Shorts Blocker] Skip cooldown active, ignoring...');
+    logDebug("Skip cooldown active, ignoring...");
     return false;
   }
   
   lastSkipTime = now;
-  console.log('[Shorts Blocker] Skipping to next video...');
+  logDebug("Skipping to next video...");
   
   const sel = [
     'button[aria-label*="Next"]',
@@ -159,7 +191,7 @@ function tryClickNext() {
 function tryDislike() {
   if (!autoDislike) return false;
   
-  console.log('[Shorts Blocker] Attempting to dislike video...');
+  logDebug("Attempting to dislike video...");
   
   // Try to find the dislike button
   const selectors = [
@@ -173,16 +205,16 @@ function tryDislike() {
     const btn = document.querySelector(selector);
     if (btn && btn.getAttribute('aria-pressed') !== 'true') {
       btn.click();
-      console.log('[Shorts Blocker] Disliked video');
+      logDebug("Disliked video");
       return true;
     }
   }
   
-  console.log('[Shorts Blocker] Dislike button not found');
+  logDebug("Dislike button not found");
   return false;
 }
 
-function updateButtonState(hasTrack) {
+function updateButtonState(hasTrack, trackStr = null) {
   const wrapper = document.querySelector(".block-track-btn-wrapper");
   if (!wrapper) return;
   
@@ -191,8 +223,17 @@ function updateButtonState(hasTrack) {
   
   if (!button || !label) return;
   
-  // Don't update if button is already in "blocked" state
-  if (label.textContent === 'Blocked') return;
+  const pendingTrack = wrapper.dataset.pendingTrack;
+  if (pendingTrack) {
+    if (trackStr && norm(pendingTrack) === norm(trackStr)) {
+      button.style.opacity = '0.6';
+      button.style.pointerEvents = 'none';
+      button.setAttribute('aria-label', 'Saving block...');
+      label.textContent = 'Saving...';
+      return;
+    }
+    delete wrapper.dataset.pendingTrack;
+  }
   
   if (!hasTrack) {
     // Disable button when no track
@@ -201,11 +242,8 @@ function updateButtonState(hasTrack) {
     button.setAttribute('aria-label', 'No track detected');
     label.textContent = 'Block';
   } else {
-    // Check if current track is already blocked
-    const trackInfo = getTrackFromYtData();
-    const trackStr = trackInfo?.full || (document.querySelector(S_EL) ? getText(document.querySelector(S_EL)) : null);
-    
-    if (trackStr && blocked.some(t => matchesBlocked(trackStr))) {
+    const currentTrack = trackStr || getCurrentTrackString();
+    if (currentTrack && matchesBlocked(currentTrack)) {
       // Track is already blocked
       button.style.opacity = '0.6';
       button.style.pointerEvents = 'none';
@@ -242,25 +280,15 @@ function addTrackButton() {
   for (const selector of selectors) {
     buttonBar = document.querySelector(selector);
     if (buttonBar) {
-      console.log('[Shorts Blocker] Found button bar using selector:', selector);
+      logDebug("Found button bar using selector:", selector);
       break;
     }
   }
   
   if (!buttonBar) {
-    console.log('[Shorts Blocker] Button bar not found');
+    logDebug("Button bar not found");
     return;
   }
-
-  // Get current track for the button click handler
-  const getCurrentTrack = () => {
-    const trackInfo = getTrackFromYtData();
-    if (trackInfo?.full) return trackInfo.full;
-    
-    const el = document.querySelector(S_EL);
-    return el ? getText(el) : null;
-  };
-
   // Create button wrapper matching YouTube's structure
   const wrapper = document.createElement('button-view-model');
   wrapper.className = 'ytSpecButtonViewModelHost block-track-btn-wrapper';
@@ -306,87 +334,99 @@ function addTrackButton() {
   button.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const track = getCurrentTrack();
-    if (!track) {
-      console.log('[Shorts Blocker] No track found to block');
+
+    if (!hasExtensionContext()) {
+      logDebug("Extension context missing; disabling block button");
+      button.style.opacity = '0.4';
+      button.style.pointerEvents = 'none';
+      button.setAttribute('aria-label', 'Extension reloading...');
+      label.textContent = 'Unavailable';
       return;
     }
     
-    chrome.storage.sync.get({blockedTracks: [], autoSkipAfterBlock: true}, v => {
-      const arr = v.blockedTracks || [];
-      if (!arr.includes(track)) {
-        arr.push(track);
-        chrome.storage.sync.set({blockedTracks: arr}, () => {
-          console.log('[Shorts Blocker] Blocked track:', track);
-          label.textContent = 'Blocked';
-          button.setAttribute('aria-label', 'Track blocked');
-          button.style.opacity = '0.6';
-          button.style.pointerEvents = 'none';
-          
-          // Auto-skip if enabled
-          if (v.autoSkipAfterBlock) {
-            console.log('[Shorts Blocker] Auto-skipping after block...');
-            setTimeout(() => tryClickNext(), 300);
-          }
-        });
-      } else {
-        console.log('[Shorts Blocker] Track already blocked:', track);
+    const track = getCurrentTrackString();
+    if (!track) {
+      logDebug("No track found to block");
+      return;
+    }
+    
+    if (!matchesBlocked(track)) {
+      wrapper.dataset.pendingTrack = track;
+      button.style.opacity = '0.6';
+      button.style.pointerEvents = 'none';
+      button.setAttribute('aria-label', 'Saving block...');
+      label.textContent = 'Saving...';
+
+      const updated = [...blocked, track];
+      chrome.storage.sync.set({blockedTracks: updated}, () => {
+        if (chrome.runtime.lastError) {
+          logError("Failed to save blocked track:", chrome.runtime.lastError);
+          delete wrapper.dataset.pendingTrack;
+          button.style.opacity = '1';
+          button.style.pointerEvents = 'auto';
+          button.setAttribute('aria-label', 'Block this track');
+          label.textContent = 'Block';
+          return;
+        }
+
+        updateBlockedTracks(updated);
+        logDebug("Blocked track:", track);
         label.textContent = 'Blocked';
+        button.setAttribute('aria-label', 'Track blocked');
         button.style.opacity = '0.6';
         button.style.pointerEvents = 'none';
-      }
-    });
+        delete wrapper.dataset.pendingTrack;
+
+        if (autoSkipAfterBlock) {
+          logDebug("Auto-skipping after block...");
+          setTimeout(() => tryClickNext(), 300);
+        }
+      });
+    } else {
+      logDebug("Track already blocked:", track);
+      label.textContent = 'Blocked';
+      button.style.opacity = '0.6';
+      button.style.pointerEvents = 'none';
+      button.setAttribute('aria-label', 'Track already blocked');
+    }
   });
 
   // Insert before the "Remix" button (last button) or append to end
   buttonBar.appendChild(wrapper);
 }
 
-function checkAndSkip() {
-  if (!enabled || !isShortsUrl()) return;
+function checkAndSkip(force = false) {
+  if (!isShortsUrl()) return;
   
-  // Prevent excessive calls
-  if (checkAndSkip.lastCall && Date.now() - checkAndSkip.lastCall < 100) return;
+  if (!force && checkAndSkip.lastCall && Date.now() - checkAndSkip.lastCall < 100) {
+    return;
+  }
   checkAndSkip.lastCall = Date.now();
   
-  // Always try to add the button first
   addTrackButton();
   
-  // Try multiple methods to get track info
-  let trackInfo = getTrackFromYtData();
-  let trackStr = trackInfo?.full;
-  
-  // Fallback to DOM element text
-  if (!trackStr) {
-    const el = document.querySelector(S_EL);
-    if (el) {
-      trackStr = getText(el);
-    }
-  }
-  
-  // Update button state based on track detection
+  const trackStr = getCurrentTrackString();
   if (!trackStr) {
     updateButtonState(false);
     return;
   }
   
-  // Enable button since we have a track
-  updateButtonState(true);
+  updateButtonState(true, trackStr);
   
-  // Prevent checking the same track multiple times
-  if (trackStr === lastCheckedTrack) return;
-  lastCheckedTrack = trackStr;
+  if (!enabled) return;
   
-  console.log('[Shorts Blocker] Current track:', trackStr);
+  if (!force && trackStr === lastCheckedTrack && lastCheckedVersion === blockedVersion) {
+    return;
+  }
+  rememberCheckedTrack(trackStr);
+  
+  logDebug("Current track:", trackStr);
 
   if (matchesBlocked(trackStr)) {
-    console.log('[Shorts Blocker] Track is blocked, processing...');
+    logDebug("Track is blocked, processing...");
     
-    // Try to dislike first (if enabled)
     if (autoDislike) {
       tryDislike();
-      // Small delay before skipping to ensure dislike registers
       setTimeout(() => tryClickNext(), 300);
     } else {
       tryClickNext();
@@ -408,18 +448,24 @@ function setupObserver() {
 }
 
 function loadState() {
-  chrome.storage.sync.get({blockedTracks: [], enabled: true, autoDislike: false, autoSkipAfterBlock: true}, v => {
-    blocked = v.blockedTracks || [];
-    enabled = v.enabled;
-    autoDislike = v.autoDislike;
-    autoSkipAfterBlock = v.autoSkipAfterBlock;
-    checkAndSkip();
-  });
+  if (!hasExtensionContext()) return;
+  chrome.storage.sync.get(
+    {blockedTracks: [], enabled: true, autoDislike: false, autoSkipAfterBlock: true, debugLogs: false},
+    v => {
+      updateBlockedTracks(v.blockedTracks || []);
+      enabled = v.enabled !== false;
+      autoDislike = !!v.autoDislike;
+      autoSkipAfterBlock = v.autoSkipAfterBlock !== false;
+      debugEnabled = !!v.debugLogs;
+      checkAndSkip(true);
+    }
+  );
 }
 
 function onNav() {
   if (!isShortsUrl()) return;
   lastCheckedTrack = null; // Reset for new video
+  lastCheckedVersion = -1;
   
   // Remove old button to ensure fresh state
   const oldButton = document.querySelector(".block-track-btn-wrapper");
@@ -438,20 +484,42 @@ function onNav() {
   setTimeout(checkAndSkip, 1500);
 }
 
+function wrapHistoryMethod(methodName) {
+  const original = history[methodName];
+  if (typeof original !== "function") return;
+  history[methodName] = function(...args) {
+    const result = original.apply(this, args);
+    onNav();
+    return result;
+  };
+}
+
 function init() {
   loadState();
   setupObserver();
   window.addEventListener("yt-navigate-finish", onNav, true);
   window.addEventListener("yt-page-data-updated", onNav, true);
-  const wrap = (fn) => function() { fn.apply(this, arguments); onNav(); };
-  history.pushState = wrap(history.pushState.bind(history));
-  history.replaceState = wrap(history.replaceState.bind(history));
-  chrome.storage.onChanged.addListener(ch => {
-    if (ch.blockedTracks) blocked = ch.blockedTracks.newValue || [];
-    if (ch.enabled) enabled = ch.enabled.newValue;
-    if (ch.autoDislike) autoDislike = ch.autoDislike.newValue;
-    if (ch.autoSkipAfterBlock) autoSkipAfterBlock = ch.autoSkipAfterBlock.newValue;
-    checkAndSkip();
+  wrapHistoryMethod("pushState");
+  wrapHistoryMethod("replaceState");
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (!hasExtensionContext()) return;
+    if (areaName && areaName !== "sync") return;
+    if (changes.blockedTracks) {
+      updateBlockedTracks(changes.blockedTracks.newValue || []);
+    }
+    if (changes.enabled) {
+      enabled = changes.enabled.newValue !== false;
+    }
+    if (changes.autoDislike) {
+      autoDislike = !!changes.autoDislike.newValue;
+    }
+    if (changes.autoSkipAfterBlock) {
+      autoSkipAfterBlock = changes.autoSkipAfterBlock.newValue !== false;
+    }
+    if (changes.debugLogs) {
+      debugEnabled = !!changes.debugLogs.newValue;
+    }
+    checkAndSkip(true);
   });
 }
 
