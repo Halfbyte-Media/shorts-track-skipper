@@ -429,6 +429,59 @@
       color: #555;
       line-height: 1.6;
     }
+
+    .danger-zone {
+      margin-top: 32px;
+      padding: 24px;
+      border: 2px dashed #ff4757;
+      border-radius: 12px;
+      background: #fff5f5;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .danger-zone-text {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .danger-zone-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #c0392b;
+      margin-bottom: 6px;
+    }
+
+    .danger-zone-desc {
+      font-size: 13px;
+      color: #a94442;
+    }
+
+    .btn-reset {
+      background: #ff4757;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.2s, opacity 0.2s;
+      min-width: 180px;
+    }
+
+    .btn-reset:hover:not(:disabled) {
+      background: #ff2e44;
+      transform: translateY(-1px);
+    }
+
+    .btn-reset:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
     
     .stats {
       display: flex;
@@ -571,6 +624,14 @@
           and uses case-insensitive matching. When a blocked track is detected on a YouTube Short, 
           it will automatically skip to the next video.
         </div>
+      </div>
+
+      <div class="danger-zone">
+        <div class="danger-zone-text">
+          <div class="danger-zone-title">Reset extension data</div>
+          <div class="danger-zone-desc">Removes all blocked tracks, settings, and statistics. This action cannot be undone.</div>
+        </div>
+        <button id="resetData" class="btn-reset">Reset All Data</button>
       </div>
     </div>
     

@@ -9,8 +9,17 @@ const trackCount = document.getElementById("trackCount");
 const skippedCount = document.getElementById("skippedCount");
 const autocompleteEl = document.getElementById("autocomplete");
 const versionEl = document.getElementById("version");
+const resetBtn = document.getElementById("resetData");
+const resetBtnDefaultText = resetBtn ? resetBtn.textContent : "Reset All Data";
 
 const DEFAULT_STATS = { skippedShorts: 0 };
+const DEFAULT_SYNC_STATE = {
+  blockedTracks: [],
+  enabled: true,
+  autoDislike: false,
+  autoSkipAfterBlock: true,
+  debugLogs: false
+};
 
 let searchTimeout = null;
 let selectedIndex = -1;
@@ -89,7 +98,7 @@ function render(items) {
 }
 
 function load() {
-  chrome.storage.sync.get({ blockedTracks: [], enabled: true, autoDislike: false, autoSkipAfterBlock: true, debugLogs: false }, v => {
+  chrome.storage.sync.get(DEFAULT_SYNC_STATE, v => {
     render(v.blockedTracks || []);
     enabledEl.checked = !!v.enabled;
     autoDislikeEl.checked = !!v.autoDislike;
@@ -292,6 +301,9 @@ autoSkipAfterBlockEl.addEventListener("change", () => chrome.storage.sync.set({ 
 if (debugLogsEl) {
   debugLogsEl.addEventListener("change", () => chrome.storage.sync.set({ debugLogs: debugLogsEl.checked }));
 }
+if (resetBtn) {
+  resetBtn.addEventListener("click", handleResetClick);
+}
 document.addEventListener("DOMContentLoaded", load);
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -304,4 +316,48 @@ function updateStatsUI(stats = DEFAULT_STATS) {
   if (skippedCount) {
     skippedCount.textContent = stats.skippedShorts ?? DEFAULT_STATS.skippedShorts;
   }
+}
+
+function handleResetClick() {
+  if (!resetBtn) return;
+  const confirmed = window.confirm(
+    "This will remove all blocked tracks, statistics, and preferences. Continue?"
+  );
+  if (!confirmed) return;
+
+  setResetButtonState("Resetting…", true);
+  chrome.storage.sync.set(DEFAULT_SYNC_STATE, () => {
+    if (chrome.runtime.lastError) {
+      console.error("Reset failed (sync)", chrome.runtime.lastError);
+      handleResetFinished("Reset failed");
+      return;
+    }
+    chrome.storage.local.set({ stats: DEFAULT_STATS }, () => {
+      if (chrome.runtime.lastError) {
+        console.error("Reset failed (stats)", chrome.runtime.lastError);
+        handleResetFinished("Reset failed");
+        return;
+      }
+      handleResetFinished("Reset complete!");
+      load();
+    });
+  });
+}
+
+function setResetButtonState(label, disabled) {
+  if (!resetBtn) return;
+  if (label) {
+    resetBtn.textContent = label;
+  }
+  resetBtn.disabled = !!disabled;
+}
+
+function handleResetFinished(label) {
+  if (!resetBtn) return;
+  resetBtn.textContent = label;
+  resetBtn.disabled = true;
+  setTimeout(() => {
+    resetBtn.textContent = resetBtnDefaultText;
+    resetBtn.disabled = false;
+  }, 1500);
 }
