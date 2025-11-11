@@ -6,8 +6,11 @@ const autoDislikeEl = document.getElementById("autoDislike");
 const autoSkipAfterBlockEl = document.getElementById("autoSkipAfterBlock");
 const debugLogsEl = document.getElementById("debugLogs");
 const trackCount = document.getElementById("trackCount");
+const skippedCount = document.getElementById("skippedCount");
 const autocompleteEl = document.getElementById("autocomplete");
 const versionEl = document.getElementById("version");
+
+const DEFAULT_STATS = { skippedShorts: 0 };
 
 let searchTimeout = null;
 let selectedIndex = -1;
@@ -16,9 +19,9 @@ let searchResults = [];
 function render(items) {
   // Update track count
   trackCount.textContent = items.length;
-  
+
   list.innerHTML = "";
-  
+
   // Show empty state if no tracks
   if (items.length === 0) {
     list.innerHTML = `
@@ -32,23 +35,23 @@ function render(items) {
     `;
     return;
   }
-  
+
   // Render track items
   items.forEach((t, i) => {
     const li = document.createElement("li");
     li.className = "track-item";
-    
+
     const infoDiv = document.createElement("div");
     infoDiv.className = "track-info";
-    
+
     const span = document.createElement("span");
     span.className = "track-name";
     span.textContent = t;
     infoDiv.appendChild(span);
-    
+
     const actionsDiv = document.createElement("div");
     actionsDiv.className = "track-actions";
-    
+
     // YouTube preview button
     const ytBtn = document.createElement("a");
     ytBtn.className = "btn-icon";
@@ -56,11 +59,9 @@ function render(items) {
     ytBtn.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(t)}`;
     ytBtn.target = "_blank";
     ytBtn.innerHTML = `
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-      </svg>
+     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>YouTube</title><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
     `;
-    
+
     // Spotify preview button
     const spotifyBtn = document.createElement("a");
     spotifyBtn.className = "btn-icon";
@@ -68,21 +69,19 @@ function render(items) {
     spotifyBtn.href = `https://open.spotify.com/search/${encodeURIComponent(t)}`;
     spotifyBtn.target = "_blank";
     spotifyBtn.innerHTML = `
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
-      </svg>
+      <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Spotify</title><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
     `;
-    
+
     // Remove button
     const del = document.createElement("button");
     del.className = "btn-danger";
     del.textContent = "Remove";
     del.addEventListener("click", () => removeAt(i));
-    
+
     actionsDiv.appendChild(ytBtn);
     actionsDiv.appendChild(spotifyBtn);
     actionsDiv.appendChild(del);
-    
+
     li.appendChild(infoDiv);
     li.appendChild(actionsDiv);
     list.appendChild(li);
@@ -90,7 +89,7 @@ function render(items) {
 }
 
 function load() {
-  chrome.storage.sync.get({blockedTracks: [], enabled: true, autoDislike: false, autoSkipAfterBlock: true, debugLogs: false}, v => {
+  chrome.storage.sync.get({ blockedTracks: [], enabled: true, autoDislike: false, autoSkipAfterBlock: true, debugLogs: false }, v => {
     render(v.blockedTracks || []);
     enabledEl.checked = !!v.enabled;
     autoDislikeEl.checked = !!v.autoDislike;
@@ -99,7 +98,11 @@ function load() {
       debugLogsEl.checked = !!v.debugLogs;
     }
   });
-  
+
+  chrome.storage.local.get({ stats: DEFAULT_STATS }, data => {
+    updateStatsUI(data.stats || DEFAULT_STATS);
+  });
+
   // Get version from manifest
   const manifest = chrome.runtime.getManifest();
   versionEl.textContent = manifest.version;
@@ -108,11 +111,11 @@ function load() {
 function add() {
   const val = input.value.trim();
   if (!val) return;
-  chrome.storage.sync.get({blockedTracks: []}, v => {
+  chrome.storage.sync.get({ blockedTracks: [] }, v => {
     const arr = v.blockedTracks || [];
     if (!arr.includes(val)) {
       arr.push(val);
-      chrome.storage.sync.set({blockedTracks: arr}, () => {
+      chrome.storage.sync.set({ blockedTracks: arr }, () => {
         input.value = "";
         render(arr);
         // Add a little success feedback
@@ -132,10 +135,10 @@ function add() {
 }
 
 function removeAt(idx) {
-  chrome.storage.sync.get({blockedTracks: []}, v => {
+  chrome.storage.sync.get({ blockedTracks: [] }, v => {
     const arr = v.blockedTracks || [];
     arr.splice(idx, 1);
-    chrome.storage.sync.set({blockedTracks: arr}, () => render(arr));
+    chrome.storage.sync.set({ blockedTracks: arr }, () => render(arr));
   });
 }
 
@@ -145,19 +148,19 @@ async function searchTracks(query) {
     hideAutocomplete();
     return;
   }
-  
+
   try {
     showAutocompleteLoading();
-    
+
     const response = await fetch(
       `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=8`
     );
-    
+
     if (!response.ok) throw new Error('Search failed');
-    
+
     const data = await response.json();
     searchResults = data.results || [];
-    
+
     if (searchResults.length === 0) {
       showAutocompleteEmpty();
     } else {
@@ -182,16 +185,16 @@ function showAutocompleteEmpty() {
 function showAutocompleteResults(results) {
   selectedIndex = -1;
   autocompleteEl.innerHTML = '';
-  
+
   results.forEach((track, index) => {
     const item = document.createElement('div');
     item.className = 'autocomplete-item';
     item.dataset.index = index;
-    
+
     const artwork = track.artworkUrl60 || track.artworkUrl100;
     const trackName = track.trackName;
     const artistName = track.artistName;
-    
+
     item.innerHTML = `
       ${artwork ? `<img src="${artwork}" alt="" class="autocomplete-artwork">` : ''}
       <div class="autocomplete-info">
@@ -199,11 +202,11 @@ function showAutocompleteResults(results) {
         <div class="autocomplete-artist">${artistName}</div>
       </div>
     `;
-    
+
     item.addEventListener('click', () => selectTrack(track));
     autocompleteEl.appendChild(item);
   });
-  
+
   autocompleteEl.classList.add('active');
 }
 
@@ -222,7 +225,7 @@ function selectTrack(track) {
 
 function handleKeyboardNavigation(e) {
   const items = autocompleteEl.querySelectorAll('.autocomplete-item');
-  
+
   if (e.key === 'ArrowDown') {
     e.preventDefault();
     selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
@@ -253,7 +256,7 @@ function updateSelection(items) {
 }
 
 addBtn.addEventListener("click", add);
-input.addEventListener("keydown", e => { 
+input.addEventListener("keydown", e => {
   if (e.key === "Enter" && selectedIndex === -1) {
     add();
   } else {
@@ -265,12 +268,12 @@ input.addEventListener("keydown", e => {
 input.addEventListener("input", e => {
   clearTimeout(searchTimeout);
   const query = e.target.value.trim();
-  
+
   if (query.length < 2) {
     hideAutocomplete();
     return;
   }
-  
+
   searchTimeout = setTimeout(() => {
     searchTracks(query);
   }, 300); // 300ms debounce
@@ -283,10 +286,22 @@ document.addEventListener("click", e => {
   }
 });
 
-enabledEl.addEventListener("change", () => chrome.storage.sync.set({enabled: enabledEl.checked}));
-autoDislikeEl.addEventListener("change", () => chrome.storage.sync.set({autoDislike: autoDislikeEl.checked}));
-autoSkipAfterBlockEl.addEventListener("change", () => chrome.storage.sync.set({autoSkipAfterBlock: autoSkipAfterBlockEl.checked}));
+enabledEl.addEventListener("change", () => chrome.storage.sync.set({ enabled: enabledEl.checked }));
+autoDislikeEl.addEventListener("change", () => chrome.storage.sync.set({ autoDislike: autoDislikeEl.checked }));
+autoSkipAfterBlockEl.addEventListener("change", () => chrome.storage.sync.set({ autoSkipAfterBlock: autoSkipAfterBlockEl.checked }));
 if (debugLogsEl) {
-  debugLogsEl.addEventListener("change", () => chrome.storage.sync.set({debugLogs: debugLogsEl.checked}));
+  debugLogsEl.addEventListener("change", () => chrome.storage.sync.set({ debugLogs: debugLogsEl.checked }));
 }
 document.addEventListener("DOMContentLoaded", load);
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "local" && changes.stats) {
+    updateStatsUI(changes.stats.newValue || DEFAULT_STATS);
+  }
+});
+
+function updateStatsUI(stats = DEFAULT_STATS) {
+  if (skippedCount) {
+    skippedCount.textContent = stats.skippedShorts ?? DEFAULT_STATS.skippedShorts;
+  }
+}

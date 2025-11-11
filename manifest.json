@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Shorts Music Block-Skipper",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Skips YouTube Shorts that use blocked music tracks. Adds a 'Block track' button next to the song name.",
   "permissions": ["storage"],
   "host_permissions": [

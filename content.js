@@ -5,6 +5,9 @@ const logDebug = (...args) => {
 };
 const logError = (...args) => console.error("[Shorts Blocker]", ...args);
 
+const DEFAULT_STATS = { skippedShorts: 0 };
+let statsUpdateChain = Promise.resolve();
+
 const S_EL = ".ytReelSoundMetadataViewModelMarqueeContainer .ytMarqueeScrollPrimaryString";
 let enabled = true;
 let blocked = [];
@@ -19,6 +22,27 @@ let lastCheckedVersion = -1;
 function hasExtensionContext() {
   return typeof chrome !== "undefined" && !!chrome.runtime?.id;
 }
+
+function incrementStat(key) {
+  if (!hasExtensionContext() || !key) return;
+  statsUpdateChain = statsUpdateChain.then(() => new Promise(resolve => {
+    chrome.storage.local.get({stats: DEFAULT_STATS}, data => {
+      const next = {...DEFAULT_STATS, ...(data.stats || {})};
+      next[key] = (next[key] || 0) + 1;
+      chrome.storage.local.set({stats: next}, () => {
+        if (chrome.runtime.lastError) {
+          logError("Failed to persist stats", chrome.runtime.lastError);
+        }
+        resolve();
+      });
+    });
+  })).catch(err => {
+    logError("Stat update chain error", err);
+    statsUpdateChain = Promise.resolve();
+  });
+}
+
+const recordSkipEvent = () => incrementStat("skippedShorts");
 
 function getText(el) {
   return el ? (el.textContent || "").trim() : "";
@@ -186,6 +210,18 @@ function tryClickNext() {
   }
   document.dispatchEvent(new KeyboardEvent("keydown", {key: "ArrowDown", code: "ArrowDown", bubbles: true}));
   return false;
+}
+
+function attemptSkipWithStats(delay = 0) {
+  const attempt = () => {
+    tryClickNext();
+    recordSkipEvent();
+  };
+  if (delay > 0) {
+    setTimeout(attempt, delay);
+  } else {
+    attempt();
+  }
 }
 
 function tryDislike() {
@@ -379,7 +415,7 @@ function addTrackButton() {
 
         if (autoSkipAfterBlock) {
           logDebug("Auto-skipping after block...");
-          setTimeout(() => tryClickNext(), 300);
+          attemptSkipWithStats(300);
         }
       });
     } else {
@@ -427,9 +463,9 @@ function checkAndSkip(force = false) {
     
     if (autoDislike) {
       tryDislike();
-      setTimeout(() => tryClickNext(), 300);
+      attemptSkipWithStats(300);
     } else {
-      tryClickNext();
+      attemptSkipWithStats();
     }
   }
 }

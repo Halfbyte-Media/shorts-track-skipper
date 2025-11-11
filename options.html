@@ -434,8 +434,9 @@
       display: flex;
       gap: 16px;
       margin-bottom: 24px;
+      flex-wrap: wrap;
     }
-    
+
     .stat-card {
       flex: 1;
       background: linear-gradient(135deg, #ff4757 0%, #ff6348 100%);
@@ -443,6 +444,7 @@
       padding: 20px;
       border-radius: 12px;
       text-align: center;
+      min-width: 180px;
     }
     
     .stat-value {
@@ -534,6 +536,10 @@
         <div class="stat-card">
           <div class="stat-value" id="trackCount">0</div>
           <div class="stat-label">Blocked Tracks</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="skippedCount">0</div>
+          <div class="stat-label">Shorts Skipped</div>
         </div>
       </div>
       
