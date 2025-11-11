@@ -1,0 +1,30 @@
+{
+  "name": "shorts-music-block-skipper",
+  "version": "1.0.0",
+  "description": "Chrome/Edge MV3 extension that skips blocked music on Shorts.",
+  "main": "content.js",
+  "scripts": {
+    "test": "npm run test:unit && npm run test:playwright",
+    "test:unit": "mocha \"tests/**/*.test.js\" --timeout 30000",
+    "test:playwright": "playwright test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Halfbyte-Media/shorts-track-skipper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Halfbyte-Media/shorts-track-skipper/issues"
+  },
+  "homepage": "https://github.com/Halfbyte-Media/shorts-track-skipper#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "adm-zip": "^0.5.15",
+    "chromedriver": "^142.0.1",
+    "mocha": "^11.7.5",
+    "selenium-webdriver": "^4.38.0"
+  }
+}

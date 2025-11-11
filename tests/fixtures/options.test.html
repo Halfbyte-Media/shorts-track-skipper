@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Options Test Harness</title>
+</head>
+<body>
+  <main>
+    <section>
+      <label>
+        Enabled
+        <input type="checkbox" id="enabled">
+      </label>
+      <label>
+        Auto Dislike
+        <input type="checkbox" id="autoDislike">
+      </label>
+      <label>
+        Auto Skip After Block
+        <input type="checkbox" id="autoSkipAfterBlock">
+      </label>
+      <label>
+        Debug Logs
+        <input type="checkbox" id="debugLogs">
+      </label>
+    </section>
+    <section>
+      <span id="trackCount">0</span>
+      <span id="skippedCount">0</span>
+      <div>
+        <input id="track" type="text" autocomplete="off">
+        <div id="autocomplete"></div>
+        <button id="add">Add Track</button>
+      </div>
+      <ul id="list"></ul>
+    </section>
+    <footer>
+      Version <span id="version"></span>
+      <button id="resetData">Reset All Data</button>
+    </footer>
+  </main>
+  <script src="../helpers/chrome-stub.js"></script>
+  <script src="../../options.js"></script>
+</body>
+</html>

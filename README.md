@@ -27,5 +27,10 @@ Whenever you make local code changes, return to `chrome://extensions` and click 
 - Icons live under `icons/`; `create-icons.js` can be used with Node + `canvas` if you ever need to regenerate them.
 - No build step is required; the extension ships as plain HTML/CSS/JS. Linting/formatting is currently manual.
 
+## Testing
+- `npm run test:unit` runs the Selenium + Mocha UI harnesses for the popup and options pages.
+- `npm run test:playwright` runs a real Chromium session against YouTube Shorts to verify the block button flow, option toggles, and skip counter updates. The first time you run it, install the browsers with `npx playwright install chromium`.
+- `npm test` executes both suites sequentially.
+
 ## Resetting the Extension
 If you run into corrupt storage or simply want a fresh start, open the options page and use **Reset All Data**. This clears blocked tracks, skip counts, and every toggle back to defaults.

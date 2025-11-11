@@ -36,6 +36,7 @@ package/
 # Testing
 coverage/
 .nyc_output/
+test-results/
 
 # Environment variables
 .env
