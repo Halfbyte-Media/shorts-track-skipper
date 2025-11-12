@@ -2,7 +2,7 @@
 
 ## Automated Build Process
 
-The GitHub Action automatically creates a release package whenever you push a version tag. No API credentials needed!
+The GitHub Action automatically creates a release package whenever you push a version tag. It runs `npm ci && npm run build:chrome` to copy the contents of `core/` into `build/chrome/`, then zips that folder. No API credentials needed!
 
 ## Publishing a New Version
 
@@ -17,7 +17,7 @@ The GitHub Action automatically creates a release package whenever you push a ve
 4. Click **Run workflow**
 
 The action will automatically:
-- Update `manifest.json` version
+- Update `core/manifest.json` version
 - Create extension.zip package
 - Commit the version change
 - Create a GitHub release with the zip file
@@ -55,8 +55,17 @@ Once the GitHub Action completes:
 1. Open Chrome → `chrome://extensions/`
 2. Enable **Developer mode**
 3. Click **Load unpacked**
-4. Select the extension directory
+4. Select the `core` directory
 5. Test on YouTube Shorts
+
+If you need to create a ZIP manually (outside of GitHub Actions):
+
+```bash
+npm ci
+npm run build:chrome
+cd build/chrome
+zip -r ../../extension.zip .
+```
 
 ## First-Time Store Submission Checklist
 

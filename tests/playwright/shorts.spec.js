@@ -4,7 +4,7 @@ const path = require("path");
 const { test, expect, chromium } = require("@playwright/test");
 const { resetExtensionStorage, setCheckboxValue, getSyncState, getLocalState } = require("./utils/extension");
 
-const EXTENSION_PATH = path.resolve(__dirname, "..", "..");
+const EXTENSION_PATH = path.resolve(__dirname, "..", "..", "core");
 const SHORT_ID = "lsMLLIdCRn8";
 const SHORT_URL = `https://www.youtube.com/shorts/${SHORT_ID}?hl=en&gl=US`;
 
@@ -13,6 +13,7 @@ async function launchContextWithExtension() {
   const context = await chromium.launchPersistentContext(userDataDir, {
     headless: false,
     args: [
+      `--mute-audio`,
       `--disable-extensions-except=${EXTENSION_PATH}`,
       `--load-extension=${EXTENSION_PATH}`,
       "--disable-dev-shm-usage",
