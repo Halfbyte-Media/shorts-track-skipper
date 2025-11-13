@@ -15,10 +15,7 @@
     <div class="page">
       <header class="hero">
         <div class="hero__art">
-          <img
-            src="assets/icons/icon.svg"
-            alt="Shorts Track Skipper icon"
-          />
+          <img src="assets/icons/icon.svg" alt="Shorts Track Skipper icon" />
         </div>
         <div>
           <p class="hero__eyebrow">Skip the reruns</p>
@@ -53,11 +50,8 @@
       <main>
         <section id="platforms" class="platforms section-card">
           <div class="section-heading">
-            <h2>Install from the Chrome Web Store</h2>
-            <p>
-              One listing works across every Chromium-based browser. Other
-              platforms follow soon.
-            </p>
+            <h2>Install it where you browse</h2>
+            <p>One extension package works across every Chromium browser.</p>
           </div>
           <div class="platforms__grid">
             <a
@@ -142,6 +136,67 @@
             </div>
           </div>
         </section>
+        <section id="screenshots" class="section-card screenshots">
+          <div class="section-heading">
+            <h2>See it in action</h2>
+            <p>
+              Glimpses of Shorts Track Skipper living inside the Shorts player,
+              the block list, and the automation controls.
+            </p>
+          </div>
+          <div class="carousel" data-carousel>
+            <div class="carousel__viewport">
+              <figure class="carousel__slide is-active" data-carousel-slide>
+                <img
+                  src="assets/screenshots/1.png"
+                  alt="Shorts action bar showing the Block Track button."
+                  loading="lazy"
+                />
+              </figure>
+              <figure class="carousel__slide" data-carousel-slide>
+                <img
+                  src="assets/screenshots/2.png"
+                  alt="Muted track list with skip counters and quick search shortcuts."
+                  loading="lazy"
+                />
+              </figure>
+              <figure class="carousel__slide" data-carousel-slide>
+                <img
+                  src="assets/screenshots/3.png"
+                  alt="Automation preferences for dislikes, skips, and notifications."
+                  loading="lazy"
+                />
+              </figure>
+            </div>
+            <div
+              class="carousel__dots"
+              role="tablist"
+              aria-label="Screenshot carousel navigation"
+            >
+              <button
+                class="carousel__dot is-active"
+                type="button"
+                data-carousel-dot
+                aria-label="Show screenshot 1"
+                aria-pressed="true"
+              ></button>
+              <button
+                class="carousel__dot"
+                type="button"
+                data-carousel-dot
+                aria-label="Show screenshot 2"
+                aria-pressed="false"
+              ></button>
+              <button
+                class="carousel__dot"
+                type="button"
+                data-carousel-dot
+                aria-label="Show screenshot 3"
+                aria-pressed="false"
+              ></button>
+            </div>
+          </div>
+        </section>
         <section id="details" class="section-card">
           <div class="section-heading">
             <h2>What you get</h2>
@@ -198,5 +253,68 @@
         >
       </footer>
     </div>
+    <script>
+      (function () {
+        const AUTO_INTERVAL = 5000;
+        const carousels = document.querySelectorAll("[data-carousel]");
+
+        carousels.forEach((carousel) => {
+          const slides = carousel.querySelectorAll("[data-carousel-slide]");
+          const dots = carousel.querySelectorAll("[data-carousel-dot]");
+          if (!slides.length) return;
+
+          let index = 0;
+          let timerId;
+
+          const setActive = (nextIndex) => {
+            index = (nextIndex + slides.length) % slides.length;
+            slides.forEach((slide, slideIndex) => {
+              slide.classList.toggle("is-active", slideIndex === index);
+            });
+            dots.forEach((dot, dotIndex) => {
+              const isActive = dotIndex === index;
+              dot.classList.toggle("is-active", isActive);
+              dot.setAttribute("aria-pressed", isActive ? "true" : "false");
+            });
+          };
+
+          const start = () => {
+            stop();
+            timerId = window.setInterval(() => {
+              setActive(index + 1);
+            }, AUTO_INTERVAL);
+          };
+
+          const stop = () => {
+            if (timerId) {
+              window.clearInterval(timerId);
+              timerId = undefined;
+            }
+          };
+
+          dots.forEach((dot, dotIndex) => {
+            dot.addEventListener("click", () => {
+              setActive(dotIndex);
+              start();
+            });
+            dot.addEventListener("keydown", (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setActive(dotIndex);
+                start();
+              }
+            });
+          });
+
+          carousel.addEventListener("pointerenter", stop);
+          carousel.addEventListener("pointerleave", start);
+          carousel.addEventListener("focusin", stop);
+          carousel.addEventListener("focusout", start);
+
+          setActive(0);
+          start();
+        });
+      })();
+    </script>
   </body>
 </html>
