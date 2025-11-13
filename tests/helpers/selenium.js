@@ -9,9 +9,10 @@ const AdmZip = require("adm-zip");
 
 require("chromedriver");
 
-const DEFAULT_EXTENSION_ROOT = path.resolve(__dirname, "..", "..");
+const DEFAULT_EXTENSION_ROOT = path.resolve(__dirname, "..", "..", "extensions");
 const DEFAULT_EXTENSION_FILES = [
   "manifest.json",
+  "background.js",
   "content.js",
   "options.js",
   "options.html",

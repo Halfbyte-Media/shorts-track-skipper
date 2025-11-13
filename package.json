@@ -2,7 +2,7 @@
   "name": "shorts-music-block-skipper",
   "version": "1.0.0",
   "description": "Chrome/Edge MV3 extension that skips blocked music on Shorts.",
-  "main": "content.js",
+  "main": "extensions/content.js",
   "scripts": {
     "test": "npm run test:unit && npm run test:playwright",
     "test:unit": "mocha \"tests/**/*.test.js\" --timeout 30000",

@@ -24,32 +24,31 @@ jobs:
         run: |
           VERSION=${{ steps.version.outputs.version }}
           # Update version in manifest.json
-          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" manifest.json
-          echo "Updated manifest.json to version $VERSION"
-          cat manifest.json | grep version
+          sed -i "s/\"version\": \".*\"/\"version\": \"$VERSION\"/" extensions/manifest.json
+          echo "Updated extensions/manifest.json to version $VERSION"
+          grep '"version"' extensions/manifest.json
       
       - name: Create extension package
         run: |
-          # Create zip with all extension files
-          # Exclude: git files, dev tools, build artifacts, docs
-          zip -r extension.zip \
+          cd extensions
+          zip -r ../extension.zip \
             manifest.json \
+            background.js \
             content.js \
             popup.html \
             popup.js \
             options.html \
             options.js \
             icons/ \
-            -x "*.git*" "generate-icons.html" "*.md" "PUBLISH.md"
-          
-          echo "✅ Extension package created: extension.zip"
+            -x "*.git*" "*.md"
+          cd ..
+          echo "Extension package created: extension.zip"
           unzip -l extension.zip
-      
       - name: Commit version bump
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add manifest.json
+          git add extensions/manifest.json
           git commit -m "chore: bump version to ${{ steps.version.outputs.version }}" || echo "No changes to commit"
           git push origin HEAD:main || echo "Nothing to push"
       

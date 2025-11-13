@@ -16,8 +16,22 @@ let autoDislike = false;
 let autoSkipAfterBlock = true;
 let lastSkipTime = 0;
 const SKIP_COOLDOWN = 2000; // 2 seconds cooldown between skips
+const SKIP_RESULT = { CLICKED: "clicked", COOLDOWN: "cooldown", FAILED: "failed" };
 let lastCheckedTrack = null; // Prevent duplicate checks
 let lastCheckedVersion = -1;
+let pendingSkipTrackNorm = null;
+const NEXT_BUTTON_SELECTORS = [
+  '#navigation-button-down button',
+  '#navigation-button-down yt-button-shape button',
+  '#navigation-button-down tp-yt-paper-button',
+  'yt-button-shape button[aria-label*="Next"]',
+  'button[aria-label*="Next video"]',
+  'button[aria-label*="Next short"]',
+  'button[aria-label*="Next shorts"]',
+  'button[aria-label*="Next"]',
+  'tp-yt-paper-icon-button[aria-label*="Next"]',
+  '.ytp-next-button'
+];
 
 function hasExtensionContext() {
   return typeof chrome !== "undefined" && !!chrome.runtime?.id;
@@ -188,40 +202,80 @@ function matchesBlocked(currentTrack) {
   });
 }
 
+function isClickableButton(el) {
+  if (!el) return false;
+  if (el.disabled || el.getAttribute("aria-disabled") === "true") return false;
+  const rect = typeof el.getBoundingClientRect === "function" ? el.getBoundingClientRect() : null;
+  if (rect && (rect.width === 0 || rect.height === 0)) return false;
+  const style = window.getComputedStyle(el);
+  if (style?.visibility === "hidden" || style?.display === "none") return false;
+  return true;
+}
+
 function tryClickNext() {
   const now = Date.now();
-  if (now - lastSkipTime < SKIP_COOLDOWN) {
+  if (lastSkipTime && now - lastSkipTime < SKIP_COOLDOWN) {
     logDebug("Skip cooldown active, ignoring...");
-    return false;
+    return SKIP_RESULT.COOLDOWN;
   }
   
-  lastSkipTime = now;
-  logDebug("Skipping to next video...");
-  
-  const sel = [
-    'button[aria-label*="Next"]',
-    '#navigation-button-down button',
-    'tp-yt-paper-icon-button[aria-label*="Next"]',
-    '.yt-spec-button-shape-next--icon-button[aria-label*="Next"]'
-  ];
-  for (const s of sel) {
-    const btn = document.querySelector(s);
-    if (btn) { btn.click(); return true; }
+  for (const selector of NEXT_BUTTON_SELECTORS) {
+    const btn = document.querySelector(selector);
+    if (isClickableButton(btn)) {
+      btn.click();
+      lastSkipTime = now;
+      logDebug("Clicked next via selector:", selector);
+      return SKIP_RESULT.CLICKED;
+    }
   }
+  
+  logDebug("Next button not found, dispatching ArrowDown fallback");
   document.dispatchEvent(new KeyboardEvent("keydown", {key: "ArrowDown", code: "ArrowDown", bubbles: true}));
-  return false;
+  return SKIP_RESULT.FAILED;
 }
 
 function attemptSkipWithStats(delay = 0) {
   const attempt = () => {
-    tryClickNext();
-    recordSkipEvent();
+    const result = tryClickNext();
+    if (result === SKIP_RESULT.CLICKED) {
+      recordSkipEvent();
+    }
+    return result;
   };
   if (delay > 0) {
-    setTimeout(attempt, delay);
-  } else {
-    attempt();
+    return new Promise(resolve => {
+      setTimeout(() => resolve(attempt()), delay);
+    });
   }
+  return Promise.resolve(attempt());
+}
+
+function scheduleSkipForTrack(trackStr, delay = 0) {
+  if (!trackStr) return;
+  const normalized = norm(trackStr);
+  if (pendingSkipTrackNorm && normalized === pendingSkipTrackNorm) {
+    logDebug("Skip already pending for track:", trackStr);
+    return;
+  }
+  pendingSkipTrackNorm = normalized;
+  rememberCheckedTrack(trackStr);
+  
+  const finalize = (result) => {
+    if (pendingSkipTrackNorm === normalized) {
+      pendingSkipTrackNorm = null;
+    }
+    if (result === SKIP_RESULT.FAILED) {
+      logDebug("Skip attempt failed; retrying shortly");
+      setTimeout(() => checkAndSkip(true), 400);
+    }
+  };
+  
+  Promise.resolve(attemptSkipWithStats(delay))
+    .then(finalize)
+    .catch(err => {
+      logError("Skip attempt error", err);
+      finalize(SKIP_RESULT.FAILED);
+    });
 }
 
 function tryDislike() {
@@ -415,7 +469,7 @@ function addTrackButton() {
 
         if (autoSkipAfterBlock) {
           logDebug("Auto-skipping after block...");
-          attemptSkipWithStats(300);
+          scheduleSkipForTrack(track, 300);
         }
       });
     } else {
@@ -454,19 +508,22 @@ function checkAndSkip(force = false) {
   if (!force && trackStr === lastCheckedTrack && lastCheckedVersion === blockedVersion) {
     return;
   }
-  rememberCheckedTrack(trackStr);
   
   logDebug("Current track:", trackStr);
 
-  if (matchesBlocked(trackStr)) {
-    logDebug("Track is blocked, processing...");
-    
-    if (autoDislike) {
-      tryDislike();
-      attemptSkipWithStats(300);
-    } else {
-      attemptSkipWithStats();
-    }
+  const isBlockedTrack = matchesBlocked(trackStr);
+  if (!isBlockedTrack) {
+    rememberCheckedTrack(trackStr);
+    return;
+  }
+
+  logDebug("Track is blocked, processing...");
+  
+  if (autoDislike) {
+    tryDislike();
+    scheduleSkipForTrack(trackStr, 300);
+  } else {
+    scheduleSkipForTrack(trackStr);
   }
 }
 
@@ -502,6 +559,7 @@ function onNav() {
   if (!isShortsUrl()) return;
   lastCheckedTrack = null; // Reset for new video
   lastCheckedVersion = -1;
+  pendingSkipTrackNorm = null;
   
   // Remove old button to ensure fresh state
   const oldButton = document.querySelector(".block-track-btn-wrapper");

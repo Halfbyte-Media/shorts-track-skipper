@@ -1,0 +1,225 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Shorts Track Skipper</title>
+  <style>
+    :root {
+      --accent-start: #ff4757;
+      --accent-end: #ff6348;
+      --text: #1f2230;
+      --muted: #6a7087;
+      --surface: #ffffff;
+      --surface-alt: #f6f7fb;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      min-width: 320px;
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      color: var(--text);
+    }
+    .popup {
+      padding: 18px;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: 20px;
+      box-shadow: 0 22px 45px rgba(20, 23, 45, 0.3);
+      overflow: hidden;
+    }
+    .card__hero {
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      color: #fff;
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hero__icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+    .hero__icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .card__hero h1 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .card__hero p {
+      margin: 4px 0 0;
+      font-size: 0.82rem;
+      opacity: 0.9;
+    }
+    .card__body {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(31, 37, 58, 0.08);
+      background: var(--surface-alt);
+      gap: 12px;
+    }
+    .toggle__text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .toggle__text span {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    .toggle__text small {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .toggle__control {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .toggle__control input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .switch {
+      width: 46px;
+      height: 26px;
+      border-radius: 999px;
+      background: #d4d8e6;
+      position: relative;
+      transition: background 0.2s ease;
+    }
+    .switch::after {
+      content: "";
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s ease;
+      box-shadow: 0 4px 10px rgba(24, 32, 56, 0.25);
+    }
+    .toggle__control input:checked + .switch {
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+    }
+    .toggle__control input:checked + .switch::after {
+      transform: translateX(20px);
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .stat-card {
+      border-radius: 16px;
+      padding: 12px 14px;
+      border: 1px solid rgba(31, 37, 58, 0.08);
+      background: var(--surface-alt);
+    }
+    .stat-card__label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .stat-card__value {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--accent-start);
+    }
+    .btn-primary {
+      border: none;
+      border-radius: 999px;
+      padding: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+      cursor: pointer;
+      box-shadow: 0 15px 30px rgba(255, 71, 87, 0.35);
+      transition: transform 0.2s ease;
+      width: 100%;
+    }
+    .btn-primary:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.6);
+      outline-offset: 2px;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+    }
+    .card__footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="popup">
+    <div class="card">
+      <div class="card__hero">
+        <div class="hero__icon">
+          <img src="icons/icon48.png" alt="Shorts Track Skipper">
+        </div>
+        <div>
+          <h1>Shorts Track Skipper</h1>
+          <p>Keep Shorts playlists fresh</p>
+        </div>
+      </div>
+      <div class="card__body">
+        <label class="toggle">
+          <div class="toggle__text">
+            <span>Auto-skip enabled</span>
+            <small>Automatically skip blocked tracks</small>
+          </div>
+          <div class="toggle__control">
+            <input type="checkbox" id="enabled">
+            <span class="switch" aria-hidden="true"></span>
+          </div>
+        </label>
+
+        <div class="stats">
+          <div class="stat-card">
+            <span class="stat-card__label">Blocked tracks</span>
+            <span class="stat-card__value" id="count">0</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Shorts skipped</span>
+            <span class="stat-card__value" id="skipped">0</span>
+          </div>
+        </div>
+
+        <button id="opts" type="button" class="btn-primary">Manage tracks</button>
+        <div class="card__footer">
+          v<span id="version"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

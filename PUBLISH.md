@@ -17,7 +17,7 @@ The GitHub Action automatically creates a release package whenever you push a ve
 4. Click **Run workflow**
 
 The action will automatically:
-- Update `manifest.json` version
+- Update `extensions/manifest.json` version
 - Create extension.zip package
 - Commit the version change
 - Create a GitHub release with the zip file
@@ -55,13 +55,13 @@ Once the GitHub Action completes:
 1. Open Chrome → `chrome://extensions/`
 2. Enable **Developer mode**
 3. Click **Load unpacked**
-4. Select the extension directory
+4. Select the `extensions/` directory
 5. Test on YouTube Shorts
 
 ## First-Time Store Submission Checklist
 
 - [ ] Generate PNG icons (use `generate-icons.html`)
-- [ ] Update `manifest.json` with final version
+- [ ] Update `extensions/manifest.json` with final version
 - [ ] Test all features thoroughly
 - [ ] Prepare screenshots for store listing
 - [ ] Write store description
