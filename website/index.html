@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shorts Track Skipper -- Showcase</title>
+  <meta name="description"
+    content="Chrome/Edge extension that blocks repeated Shorts music with a local-first data model.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="hero__art">
+        <img src="../extensions/icons/icon.svg" alt="Shorts Track Skipper icon">
+      </div>
+      <div>
+        <p class="hero__eyebrow">Skip the reruns</p>
+        <h1>Block recycled Shorts music.</h1>
+        <p>Shorts Track Skipper watches YouTube's song credit and quietly skips any Short that plays something you've
+          already muted. There's no onboarding, no extra UI--just a Block Track button that sits in the Shorts action
+          bar next to Like, Dislike, and Comment.</p>
+        <!-- <div class="hero__badge">All data stays inside Chrome storage.</div> -->
+        <div class="hero__actions">
+          <a class="btn btn--ghost" href="https://github.com/Halfbyte-Media/shorts-track-skipper" target="_blank"
+            rel="noreferrer noopener">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            View on GitHub
+          </a>
+        </div>
+        <p class="hero__note">Works anywhere Chrome extensions run; Firefox and Safari builds are on the roadmap.</p>
+      </div>
+    </header>
+    <main>
+      <section id="platforms" class="platforms section-card">
+        <div class="section-heading">
+          <h2>Install from the Chrome Web Store</h2>
+          <p>One listing works across every Chromium-based browser. Other platforms follow soon.</p>
+        </div>
+        <div class="platforms__grid">
+          <a class="platform"
+            href="https://chromewebstore.google.com/detail/shorts-track-skipper/aogdhhkkmflljjkknajmgjjdkafplhnh"
+            target="_blank" rel="noreferrer noopener">
+            <span class="platform__icon">
+              <i class="fa-brands fa-chrome" aria-hidden="true"></i>
+            </span>
+            <div class="platform__info">
+              <strong>Google Chrome</strong>
+              <span>Available now</span>
+            </div>
+          </a>
+          <a class="platform"
+            href="https://chromewebstore.google.com/detail/shorts-track-skipper/aogdhhkkmflljjkknajmgjjdkafplhnh"
+            target="_blank" rel="noreferrer noopener">
+            <span class="platform__icon">
+              <i class="fa-brands fa-edge" aria-hidden="true"></i>
+            </span>
+            <div class="platform__info">
+              <strong>Microsoft Edge</strong>
+              <span>Available now</span>
+            </div>
+          </a>
+          <a class="platform"
+            href="https://chromewebstore.google.com/detail/shorts-track-skipper/aogdhhkkmflljjkknajmgjjdkafplhnh"
+            target="_blank" rel="noreferrer noopener">
+            <span class="platform__icon">
+              <i class="fa-brands fa-brave" aria-hidden="true"></i>
+            </span>
+            <div class="platform__info">
+              <strong>Brave</strong>
+              <span>Available now</span>
+            </div>
+          </a>
+          <a class="platform"
+            href="https://chromewebstore.google.com/detail/shorts-track-skipper/aogdhhkkmflljjkknajmgjjdkafplhnh"
+            target="_blank" rel="noreferrer noopener">
+            <span class="platform__icon">
+              <i class="fa-brands fa-opera" aria-hidden="true"></i>
+            </span>
+            <div class="platform__info">
+              <strong>Opera / Opera GX</strong>
+              <span>Available now</span>
+            </div>
+          </a>
+          <div class="platform platform--disabled" aria-disabled="true">
+            <span class="platform__icon">
+              <i class="fa-brands fa-firefox-browser" aria-hidden="true"></i>
+            </span>
+            <div class="platform__info">
+              <strong>Firefox</strong>
+              <span>Coming soon</span>
+            </div>
+          </div>
+          <div class="platform platform--disabled" aria-disabled="true">
+            <span class="platform__icon">
+              <i class="fa-brands fa-safari" aria-hidden="true"></i>
+            </span>
+            <div class="platform__info">
+              <strong>Safari</strong>
+              <span>Coming soon</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="details" class="section-card">
+        <div class="section-heading">
+          <h2>What you get</h2>
+          <p>A tight feature set built for people who actually watch Shorts.</p>
+        </div>
+        <ul class="details-list">
+          <li>
+            <strong>Action bar block button.</strong>
+            Drops a "Block track" control right into the Shorts action bar beside the standard like/dislike buttons, so
+            you never dig through extra menus.
+          </li>
+          <li>
+            <strong>Automatic skip flow.</strong>
+            When a muted song reappears, the extension (optionally) drops a dislike, rolls to the next Short, and
+            updates the skip counter.
+          </li>
+          <li>
+            <strong>Local stats + quick search.</strong>
+            Block list entries live in chrome.storage, along with skip counts and toggle states, and every row exposes
+            one-click YouTube + Spotify searches.
+          </li>
+        </ul>
+      </section>
+
+      <section class="local">
+        <div class="local__card">
+          <h2>Local-first data promise</h2>
+          <p>Shorts Track Skipper never phones home. The block list, toggle states, and skip counters only touch Chrome's
+            sync/local storage APIs, meaning nothing leaves your browser profile.</p>
+          <ul>
+            <li>No accounts, analytics, or remote API calls.</li>
+            <li>Reset everything from the options page whenever you want a clean slate.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+    <footer>
+      Built by people who watch too many Shorts -- <a href="https://github.com/Halfbyte-Media/shorts-track-skipper"
+        target="_blank" rel="noreferrer noopener">Contribute on GitHub</a>
+    </footer>
+  </div>
+</body>
+</html>
