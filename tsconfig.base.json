@@ -1,0 +1,10 @@
+{
+  "extends": "./packages/config-ts/tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@ext/core/*": ["packages/extension-core/src/*"],
+      "@ext/ui/*": ["packages/ui/src/*"]
+    }
+  }
+}

@@ -1,0 +1,5 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+export function Details() {
+    return (_jsxs("section", { id: "details", className: "section-card", children: [_jsxs("div", { className: "section-heading", children: [_jsx("h2", { children: "What you get" }), _jsx("p", { children: "A tight feature set built for people who actually watch Shorts." })] }), _jsxs("ul", { className: "details-list", children: [_jsxs("li", { children: [_jsx("strong", { children: "Action bar block button." }), "Drops a \"Block track\" control right into the Shorts action bar beside the standard like/dislike buttons, so you never dig through extra menus."] }), _jsxs("li", { children: [_jsx("strong", { children: "Automatic skip flow." }), "When a muted song reappears, the extension (optionally) drops a dislike, rolls to the next Short, and updates the skip counter."] }), _jsxs("li", { children: [_jsx("strong", { children: "Local stats + quick search." }), "Block list entries live in browser storage, along with skip counts and toggle states, and every row exposes one-click YouTube + Spotify searches."] })] })] }));
+}
+//# sourceMappingURL=Details.js.map

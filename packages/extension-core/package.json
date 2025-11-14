@@ -1,0 +1,50 @@
+{
+  "name": "@ext/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./background": {
+      "import": "./dist/background/index.js",
+      "require": "./dist/background/index.cjs"
+    },
+    "./content": {
+      "import": "./dist/content/index.js",
+      "require": "./dist/content/index.cjs"
+    },
+    "./popup": {
+      "import": "./dist/popup/index.js",
+      "require": "./dist/popup/index.cjs"
+    },
+    "./options": {
+      "import": "./dist/options/index.js",
+      "require": "./dist/options/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts src/background/index.ts src/content/index.ts src/popup/index.tsx src/options/index.tsx --dts --format esm,cjs --out-dir dist",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@ext/ui": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.47",
+    "@types/react-dom": "^18.2.18",
+    "tsup": "^7.2.0",
+    "typescript": "^5.4.2"
+  }
+}

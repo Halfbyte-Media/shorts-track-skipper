@@ -1,0 +1,6 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { Button } from '@ext/ui';
+export function Hero() {
+    return (_jsxs("header", { className: "hero", children: [_jsx("div", { className: "hero__art", children: _jsx("img", { src: "/assets/icons/icon.svg", alt: "Shorts Track Skipper icon" }) }), _jsxs("div", { children: [_jsx("p", { className: "hero__eyebrow", children: "Skip the reruns" }), _jsx("h1", { children: "Block recycled Shorts music." }), _jsx("p", { children: "Shorts Track Skipper watches YouTube's song credit and quietly skips any Short that plays something you've already muted. There's no onboarding, no extra UI\u2014just a Block Track button that sits in the Shorts action bar next to Like, Dislike, and Comment." }), _jsx("div", { className: "hero__actions", children: _jsx(Button, { variant: "ghost", href: "https://github.com/Halfbyte-Media/shorts-track-skipper", children: "View on GitHub" }) }), _jsx("p", { className: "hero__note", children: "Works anywhere Chromium extensions run; Firefox and Safari builds are on the roadmap." })] })] }));
+}
+//# sourceMappingURL=Hero.js.map

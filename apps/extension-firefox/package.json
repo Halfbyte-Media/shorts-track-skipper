@@ -1,0 +1,21 @@
+{
+  "name": "@ext/extension-firefox",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsup --config tsup.config.ts",
+    "postbuild": "node ../../tools/scripts/copy-extension-assets.mjs firefox"
+  },
+  "dependencies": {
+    "@ext/core": "workspace:*",
+    "@ext/ui": "workspace:*",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "tsup": "^7.2.0",
+    "typescript": "^5.4.2"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Shorts Track Skipper",
-  "version": "1.0.2",
+  "name": "Shorts Track Skipper (Firefox)",
+  "version": "1.0.1",
   "description": "Skips YouTube Shorts that use blocked music tracks. Adds a 'Block track' button to the Shorts action bar.",
   "permissions": ["storage"],
   "host_permissions": [

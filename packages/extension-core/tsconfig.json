@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": false,
+    "lib": ["ES2022", "DOM"],
+    "types": ["chrome"],
+    "baseUrl": ".",
+    "paths": {
+      "@ext/core/*": ["src/*"],
+      "@ext/ui/*": ["../ui/src/*"]
+    }
+  },
+  "include": ["src"]
+}

@@ -1,6 +1,6 @@
 @font-face {
   font-family: "Inter";
-  src: url("assets/fonts/Inter-roman-latin.woff2") format("woff2");
+  src: url("/assets/fonts/Inter-roman-latin.woff2") format("woff2");
   font-weight: 400 700;
   font-style: normal;
   font-display: swap;
@@ -266,8 +266,8 @@ main > * + * {
 }
 
 .btn__icon--github {
-  -webkit-mask-image: url("assets/icons/github.svg");
-  mask-image: url("assets/icons/github.svg");
+  -webkit-mask-image: url("/assets/icons/github.svg");
+  mask-image: url("/assets/icons/github.svg");
 }
 
 .stats {
@@ -390,33 +390,33 @@ section {
 }
 
 .platform__icon--chrome::before {
-  -webkit-mask-image: url("assets/icons/googlechrome.svg");
-  mask-image: url("assets/icons/googlechrome.svg");
+  -webkit-mask-image: url("/assets/icons/googlechrome.svg");
+  mask-image: url("/assets/icons/googlechrome.svg");
 }
 
 .platform__icon--edge::before {
-  -webkit-mask-image: url("assets/icons/microsoftedge.svg");
-  mask-image: url("assets/icons/microsoftedge.svg");
+  -webkit-mask-image: url("/assets/icons/microsoftedge.svg");
+  mask-image: url("/assets/icons/microsoftedge.svg");
 }
 
 .platform__icon--brave::before {
-  -webkit-mask-image: url("assets/icons/brave.svg");
-  mask-image: url("assets/icons/brave.svg");
+  -webkit-mask-image: url("/assets/icons/brave.svg");
+  mask-image: url("/assets/icons/brave.svg");
 }
 
 .platform__icon--opera::before {
-  -webkit-mask-image: url("assets/icons/opera.svg");
-  mask-image: url("assets/icons/opera.svg");
+  -webkit-mask-image: url("/assets/icons/opera.svg");
+  mask-image: url("/assets/icons/opera.svg");
 }
 
 .platform__icon--firefox::before {
-  -webkit-mask-image: url("assets/icons/firefoxbrowser.svg");
-  mask-image: url("assets/icons/firefoxbrowser.svg");
+  -webkit-mask-image: url("/assets/icons/firefoxbrowser.svg");
+  mask-image: url("/assets/icons/firefoxbrowser.svg");
 }
 
 .platform__icon--safari::before {
-  -webkit-mask-image: url("assets/icons/safari.svg");
-  mask-image: url("assets/icons/safari.svg");
+  -webkit-mask-image: url("/assets/icons/safari.svg");
+  mask-image: url("/assets/icons/safari.svg");
 }
 
 .platform--disabled .platform__icon {
@@ -527,3 +527,4 @@ footer {
     padding: 28px 18px;
   }
 }
+

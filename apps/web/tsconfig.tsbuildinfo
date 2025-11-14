@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/components/platformicon.tsx","./src/data/platforms.ts","./src/data/screenshots.ts","./src/sections/details.tsx","./src/sections/hero.tsx","./src/sections/installgrid.tsx","./src/sections/localpromise.tsx","./src/sections/screenshots.tsx"],"version":"5.9.3"}
